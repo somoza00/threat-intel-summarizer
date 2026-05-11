@@ -297,7 +297,7 @@ def _analyze_cve(query: str, raw_data: dict) -> dict:
 
     findings.append(Finding(
         title="Descrição técnica",
-        description=description[:500] + ("..." if len(description) > 500 else ""),
+        description=description,
         source="NVD",
     ))
 
