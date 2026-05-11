@@ -18,7 +18,11 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://threat-intel-summarizer-production-b2f7.up.railway.app"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://threat-intel-summarizer-production-b2f7.up.railway.app",
+        "https://threat-intel-summarizer-eta.vercel.app",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
