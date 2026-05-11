@@ -330,7 +330,7 @@ def _analyze_cve(query: str, raw_data: dict) -> dict:
     risk = _score_to_risk(score)
 
     summary_parts = [f"Vulnerabilidade {query}:"]
-    summary_parts.append(description[:200] + ("..." if len(description) > 200 else ""))
+    summary_parts.append(description)
     if cvss_score:
         summary_parts.append(f"CVSS base score: {cvss_score} ({cvss_severity or 'N/A'}).")
 
