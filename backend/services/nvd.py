@@ -1,11 +1,16 @@
 import httpx
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
 
 API_KEY = os.getenv("NVD_API_KEY")
 BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+
+def _strip_html(text: str) -> str:
+    return re.sub(r'<[^>]+>', '', text).strip()
 
 
 async def lookup_cve(cve_id: str) -> dict:
@@ -24,9 +29,9 @@ async def lookup_cve(cve_id: str) -> dict:
 
         cve = vulnerabilities[0].get("cve", {})
         descriptions = cve.get("descriptions", [])
-        description_en = next(
+        description_en = _strip_html(next(
             (d["value"] for d in descriptions if d["lang"] == "en"), "Sem descrição"
-        )
+        ))
 
         metrics = cve.get("metrics", {})
         cvss_score = None

@@ -13,7 +13,7 @@ export function ResultCard({ result }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-400 text-sm">Análise de</p>
-          <p className="text-white font-mono text-lg">{result.query}</p>
+          <p className="text-white font-mono text-lg break-all">{result.query}</p>
           <p className="text-gray-500 text-xs uppercase mt-1">{result.input_type}</p>
         </div>
         <RiskBadge level={result.risk_level} score={result.risk_score} />
