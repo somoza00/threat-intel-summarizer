@@ -1,10 +1,13 @@
 import re
 import asyncio
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from models.schemas import AnalyzeRequest, AnalyzeResponse, InputType
 from services import virustotal, abuseipdb, nvd, rule_based_summarizer as ai_summarizer
 
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 
@@ -31,8 +34,9 @@ def detect_input_type(query: str) -> InputType:
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze(request: AnalyzeRequest):
-    query = request.query.strip()
+@limiter.limit("5/minute")
+async def analyze(request: Request, body: AnalyzeRequest):
+    query = body.query.strip()
     input_type = detect_input_type(query)
     raw_data = {}
 
