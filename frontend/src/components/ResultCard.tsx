@@ -6,6 +6,16 @@ interface Props {
   result: AnalyzeResponse;
 }
 
+const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+
+function countryName(code: string): string {
+  try {
+    return regionNames.of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 export function ResultCard({ result }: Props) {
   return (
     <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-6">
@@ -19,13 +29,16 @@ export function ResultCard({ result }: Props) {
         <div className="flex flex-col items-end gap-1">
           <RiskBadge level={result.risk_level} score={result.risk_score} />
           {result.country && (
-            <img
-              src={`https://flagcdn.com/w20/${result.country.toLowerCase()}.png`}
-              srcSet={`https://flagcdn.com/w40/${result.country.toLowerCase()}.png 2x`}
-              alt={result.country}
-              title={result.country}
-              className="w-6 h-4 object-cover rounded-sm"
-            />
+            <div className="flex flex-col items-center gap-1">
+              <img
+                src={`https://flagcdn.com/w20/${result.country.toLowerCase()}.png`}
+                srcSet={`https://flagcdn.com/w40/${result.country.toLowerCase()}.png 2x`}
+                alt={result.country}
+                title={result.country}
+                className="w-6 h-4 object-cover rounded-sm"
+              />
+              <span className="text-gray-400 text-xs">{countryName(result.country)}</span>
+            </div>
           )}
         </div>
       </div>
