@@ -6,6 +6,14 @@ interface Props {
   result: AnalyzeResponse;
 }
 
+function countryCodeToFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .split("")
+    .map(c => String.fromCodePoint(c.charCodeAt(0) + 127397))
+    .join("");
+}
+
 export function ResultCard({ result }: Props) {
   return (
     <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-6">
@@ -16,7 +24,14 @@ export function ResultCard({ result }: Props) {
           <p className="text-white font-mono text-lg break-all">{result.query}</p>
           <p className="text-gray-500 text-xs uppercase mt-1">{result.input_type}</p>
         </div>
-        <RiskBadge level={result.risk_level} score={result.risk_score} />
+        <div className="flex flex-col items-end gap-1">
+          <RiskBadge level={result.risk_level} score={result.risk_score} />
+          {result.country && (
+            <span className="text-xl" title={result.country}>
+              {countryCodeToFlag(result.country)}
+            </span>
+          )}
+        </div>
       </div>
 
       <div>

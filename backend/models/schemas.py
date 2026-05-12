@@ -22,7 +22,7 @@ class AnalyzeRequest(BaseModel):
 class Finding(BaseModel):
     title: str
     description: str
-    source: str # "VirusTotal", "AbuseIPDB", "NVD"
+    source: str
 
 class AnalyzeResponse(BaseModel):
     query: str
@@ -32,4 +32,5 @@ class AnalyzeResponse(BaseModel):
     summary: str
     findings: list[Finding]
     recommendations: list[str]
-    raw_data: dict    
+    raw_data: dict
+    country: str | None = None

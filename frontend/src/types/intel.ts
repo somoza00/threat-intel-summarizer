@@ -16,4 +16,5 @@ export interface AnalyzeResponse {
   findings: Finding[];
   recommendations: string[];
   raw_data: Record<string, unknown>;
+  country?: string;
 }

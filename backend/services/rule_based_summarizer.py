@@ -118,12 +118,13 @@ def _analyze_ip(query: str, raw_data: dict) -> dict:
         summary_parts.append("O IP não apresenta indicadores expressivos de comprometimento.")
 
     return dict(
-        risk_level=risk,
-        risk_score=score,
-        summary=" ".join(summary_parts),
-        findings=findings,
-        recommendations=recommendations,
-    )
+    risk_level=risk,
+    risk_score=score,
+    summary=" ".join(summary_parts),
+    findings=findings,
+    recommendations=recommendations,
+    country=country if country != "N/A" else None,
+)
 
 
 def _analyze_hash(query: str, raw_data: dict) -> dict:
@@ -247,12 +248,13 @@ def _analyze_domain(query: str, raw_data: dict) -> dict:
         summary_parts.append("Domínio sem detecções expressivas no VirusTotal.")
 
     return dict(
-        risk_level=risk,
-        risk_score=score,
-        summary=" ".join(summary_parts),
-        findings=findings,
-        recommendations=recommendations,
-    )
+    risk_level=risk,
+    risk_score=score,
+    summary=" ".join(summary_parts),
+    findings=findings,
+    recommendations=recommendations,
+    country=vt.get("country"),
+)
 
 def _analyze_cve(query: str, raw_data: dict) -> dict:
     findings: list[Finding] = []
