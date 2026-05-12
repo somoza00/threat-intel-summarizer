@@ -3,6 +3,30 @@ import { analyze } from "../services/api";
 import { ResultCard } from "../components/ResultCard";
 import type { AnalyzeResponse } from "../types/intel";
 
+const SOURCES = [
+  {
+    name: "VirusTotal",
+    url: "https://virustotal.com",
+    description: "Análise de antivírus e reputação",
+    tags: ["IP", "Hash", "Domínio"],
+    color: "bg-blue-500",
+  },
+  {
+    name: "AbuseIPDB",
+    url: "https://abuseipdb.com",
+    description: "Histórico de abusos e denúncias",
+    tags: ["IP"],
+    color: "bg-orange-500",
+  },
+  {
+    name: "NVD / NIST",
+    url: "https://nvd.nist.gov",
+    description: "Base nacional de vulnerabilidades",
+    tags: ["CVE"],
+    color: "bg-green-500",
+  },
+];
+
 export function Home() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
@@ -30,39 +54,80 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto">
 
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 mb-8">
           <h1 className="text-3xl font-bold text-white">Threat Intel Summarizer</h1>
           <p className="text-gray-400">Analise IPs, hashes, domínios e CVEs em segundos</p>
         </div>
 
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ex: 1.1.1.1 | CVE-2021-44228 | malware.exe hash..."
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          />
-          <button
-            onClick={handleAnalyze}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-6 py-3 rounded-lg font-semibold transition-colors"
-          >
-            {loading ? "Analisando..." : "Analisar"}
-          </button>
-        </div>
+        <div className="flex gap-6 items-start">
 
-        {error && (
-          <div className="bg-red-900 border border-red-700 rounded-lg p-4 text-red-300 text-sm">
-            {error}
+          {/* Painel de fontes */}
+          <aside className="w-52 flex-shrink-0 sticky top-6">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-4">
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Fontes de dados</p>
+              <div className="space-y-4">
+                {SOURCES.map((source) => (
+                  <div key={source.name} className="flex items-start gap-3">
+                    <div className={`w-2 h-2 rounded-full ${source.color} mt-1.5 flex-shrink-0`} />
+                    <div className="min-w-0">
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-white text-sm font-medium hover:text-blue-400 transition-colors"
+                      >
+                        {source.name}
+                      </a>
+                      <p className="text-gray-500 text-xs mt-0.5 leading-snug">{source.description}</p>
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {source.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          {/* Conteúdo principal */}
+          <div className="flex-1 min-w-0 space-y-6">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ex: 1.1.1.1 | CVE-2021-44228 | malware hash..."
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              />
+              <button
+                onClick={handleAnalyze}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-6 py-3 rounded-lg font-semibold transition-colors"
+              >
+                {loading ? "Analisando..." : "Analisar"}
+              </button>
+            </div>
+
+            {error && (
+              <div className="bg-red-900 border border-red-700 rounded-lg p-4 text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+
+            {result && <ResultCard result={result} />}
           </div>
-        )}
 
-        {result && <ResultCard result={result} />}
-
+        </div>
       </div>
     </div>
   );
