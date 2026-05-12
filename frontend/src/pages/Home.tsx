@@ -19,6 +19,13 @@ const SOURCES = [
     color: "bg-orange-500",
   },
   {
+    name: "Shodan",
+    url: "https://shodan.io",
+    description: "Portas, serviços e CVEs expostos",
+    tags: ["IP", "Domínio"],
+    color: "bg-red-500",
+  },
+  {
     name: "NVD / NIST",
     url: "https://nvd.nist.gov",
     description: "Base nacional de vulnerabilidades",

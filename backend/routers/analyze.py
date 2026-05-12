@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from models.schemas import AnalyzeRequest, AnalyzeResponse, InputType
-from services import virustotal, abuseipdb, nvd, rule_based_summarizer as ai_summarizer
+from services import virustotal, abuseipdb, nvd, shodan, rule_based_summarizer as ai_summarizer
 
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
@@ -41,20 +41,26 @@ async def analyze(request: Request, body: AnalyzeRequest):
     raw_data = {}
 
     if input_type == InputType.ip:
-        vt_data, abuse_data = await asyncio.gather(
+        vt_data, abuse_data, shodan_data = await asyncio.gather(
             virustotal.lookup_ip(query),
             abuseipdb.lookup_ip(query),
+            shodan.lookup_ip(query),
         )
         raw_data["virustotal"] = vt_data
         raw_data["abuseipdb"] = abuse_data
+        raw_data["shodan"] = shodan_data
 
     elif input_type == InputType.hash:
         vt_data = await virustotal.lookup_hash(query)
         raw_data["virustotal"] = vt_data
 
     elif input_type == InputType.domain:
-        vt_data = await virustotal.lookup_domain(query)
+        vt_data, shodan_data = await asyncio.gather(
+            virustotal.lookup_domain(query),
+            shodan.lookup_domain(query),
+        )
         raw_data["virustotal"] = vt_data
+        raw_data["shodan"] = shodan_data
 
     elif input_type == InputType.cve:
         nvd_data = await nvd.lookup_cve(query)

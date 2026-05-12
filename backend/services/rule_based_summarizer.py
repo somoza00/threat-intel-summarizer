@@ -97,6 +97,57 @@ def _analyze_ip(query: str, raw_data: dict) -> dict:
             source="AbuseIPDB",
         ))
 
+    # --- Shodan ---
+    sh = raw_data.get("shodan", {})
+    if sh and "error" not in sh:
+        ports = sh.get("ports", [])
+        services = sh.get("services", [])
+        sh_vulns = sh.get("vulns", [])
+        sh_os = sh.get("os")
+        sh_tags = sh.get("tags", [])
+        sh_hostnames = sh.get("hostnames", [])
+
+        if ports:
+            svc_lines = []
+            for s in services:
+                line = f"{s['port']}/{s.get('transport', 'tcp')}"
+                if s.get("product"):
+                    line += f" ({s['product']}"
+                    if s.get("version"):
+                        line += f" {s['version']}"
+                    line += ")"
+                svc_lines.append(line)
+
+            desc = f"{len(ports)} porta(s) aberta(s): {', '.join(str(p) for p in ports[:15])}."
+            if svc_lines:
+                desc += f" Serviços: {', '.join(svc_lines[:6])}."
+            if sh_os:
+                desc += f" SO detectado: {sh_os}."
+            if sh_hostnames:
+                desc += f" Hostnames: {', '.join(sh_hostnames[:3])}."
+            if sh_tags:
+                desc += f" Tags: {', '.join(sh_tags)}."
+
+            findings.append(Finding(
+                title="Exposição detectada pelo Shodan",
+                description=desc,
+                source="Shodan",
+            ))
+
+            if len(ports) > 20:
+                recommendations.append("Alto número de portas expostas — revisar regras de firewall.")
+            if any(p in ports for p in [22, 23, 3389]):
+                recommendations.append("Portas de acesso remoto expostas (SSH/Telnet/RDP) — restringir acesso.")
+
+        if sh_vulns:
+            score = max(score, 7.0)
+            findings.append(Finding(
+                title=f"Vulnerabilidades conhecidas no Shodan ({len(sh_vulns)})",
+                description=f"CVEs identificados: {', '.join(sh_vulns[:10])}{'...' if len(sh_vulns) > 10 else ''}.",
+                source="Shodan",
+            ))
+            recommendations.append("Aplicar patches para as CVEs identificadas pelo Shodan.")
+
     if not recommendations:
         recommendations.append("Monitorar o IP em futuras análises como medida preventiva.")
 
@@ -114,6 +165,10 @@ def _analyze_ip(query: str, raw_data: dict) -> dict:
         )
     if is_tor:
         summary_parts.append("O IP é um nó da rede Tor.")
+    if sh and "error" not in sh and sh.get("ports"):
+        summary_parts.append(f"O Shodan detectou {len(sh['ports'])} porta(s) exposta(s).")
+        if sh.get("vulns"):
+            summary_parts.append(f"{len(sh['vulns'])} CVE(s) associada(s) ao host.")
     if risk in (RiskLevel.clean, RiskLevel.low) and not abuse_score and not malicious_vt:
         summary_parts.append("O IP não apresenta indicadores expressivos de comprometimento.")
 
@@ -239,6 +294,28 @@ def _analyze_domain(query: str, raw_data: dict) -> dict:
         ))
         recommendations.append("Pesquisar o domínio em fontes OSINT adicionais (WHOIS, Shodan).")
 
+    # --- Shodan ---
+    sh = raw_data.get("shodan", {})
+    if sh and "error" not in sh:
+        ips = sh.get("ips", [])
+        subdomains = sh.get("subdomains", [])
+        sh_tags = sh.get("tags", [])
+
+        if ips or subdomains:
+            desc_parts = []
+            if ips:
+                desc_parts.append(f"IPs associados: {', '.join(ips)}.")
+            if subdomains:
+                desc_parts.append(f"{len(subdomains)} subdomínio(s) encontrado(s): {', '.join(subdomains[:5])}{'...' if len(subdomains) > 5 else ''}.")
+            if sh_tags:
+                desc_parts.append(f"Tags: {', '.join(sh_tags)}.")
+
+            findings.append(Finding(
+                title="Informações de DNS no Shodan",
+                description=" ".join(desc_parts),
+                source="Shodan",
+            ))
+
     risk = _score_to_risk(score)
 
     summary_parts = [f"Análise do domínio {query}:"]
@@ -246,6 +323,8 @@ def _analyze_domain(query: str, raw_data: dict) -> dict:
         summary_parts.append(f"{malicious_vt} detecções maliciosas em {total_vt} engines consultadas.")
     else:
         summary_parts.append("Domínio sem detecções expressivas no VirusTotal.")
+    if sh and "error" not in sh and sh.get("ips"):
+        summary_parts.append(f"Shodan associa {len(sh['ips'])} IP(s) ao domínio.")
 
     return dict(
     risk_level=risk,
