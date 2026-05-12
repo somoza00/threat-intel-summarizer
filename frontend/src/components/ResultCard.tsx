@@ -6,18 +6,6 @@ interface Props {
   result: AnalyzeResponse;
 }
 
-function countryCodeToFlag(code: string): string {
-  try {
-    return code
-      .toUpperCase()
-      .replace(/./g, char =>
-        String.fromCodePoint(char.charCodeAt(0) + 127397)
-      );
-  } catch {
-    return code;
-  }
-}
-
 export function ResultCard({ result }: Props) {
   return (
     <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-6">
@@ -31,9 +19,13 @@ export function ResultCard({ result }: Props) {
         <div className="flex flex-col items-end gap-1">
           <RiskBadge level={result.risk_level} score={result.risk_score} />
           {result.country && (
-            <span className="text-xl" title={result.country}>
-              {countryCodeToFlag(result.country)}
-            </span>
+            <img
+              src={`https://flagcdn.com/w20/${result.country.toLowerCase()}.png`}
+              srcSet={`https://flagcdn.com/w40/${result.country.toLowerCase()}.png 2x`}
+              alt={result.country}
+              title={result.country}
+              className="w-6 h-4 object-cover rounded-sm"
+            />
           )}
         </div>
       </div>
