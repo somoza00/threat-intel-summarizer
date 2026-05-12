@@ -7,11 +7,15 @@ interface Props {
 }
 
 function countryCodeToFlag(code: string): string {
-  return code
-    .toUpperCase()
-    .split("")
-    .map(c => String.fromCodePoint(c.charCodeAt(0) + 127397))
-    .join("");
+  try {
+    return code
+      .toUpperCase()
+      .replace(/./g, char =>
+        String.fromCodePoint(char.charCodeAt(0) + 127397)
+      );
+  } catch {
+    return code;
+  }
 }
 
 export function ResultCard({ result }: Props) {
