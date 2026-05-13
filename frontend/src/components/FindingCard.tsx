@@ -8,6 +8,7 @@ const sourceColors: Record<string, string> = {
   VirusTotal: "bg-blue-900 text-blue-300",
   AbuseIPDB: "bg-purple-900 text-purple-300",
   NVD: "bg-red-900 text-red-300",
+  "Hybrid Analysis": "bg-yellow-900 text-yellow-300",
 };
 
 export function FindingCard({ finding }: Props) {

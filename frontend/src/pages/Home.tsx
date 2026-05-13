@@ -32,6 +32,13 @@ const SOURCES = [
     tags: ["CVE"],
     color: "bg-green-500",
   },
+  {
+    name: "Hybrid Analysis",
+    url: "https://www.hybrid-analysis.com",
+    description: "Sandbox e análise comportamental de malware",
+    tags: ["Hash"],
+    color: "bg-yellow-500",
+  },
 ];
 
 export function Home() {

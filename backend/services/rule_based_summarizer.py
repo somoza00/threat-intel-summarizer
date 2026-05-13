@@ -230,6 +230,72 @@ def _analyze_hash(query: str, raw_data: dict) -> dict:
         ))
         recommendations.append("Submeter o arquivo ao VirusTotal para análise manual.")
 
+    # --- Hybrid Analysis ---
+    ha = raw_data.get("hybrid_analysis", {})
+    if ha and "error" not in ha:
+        verdict = ha.get("verdict")
+        threat_score = ha.get("threat_score")
+        av_detect = ha.get("av_detect")
+        ha_type = ha.get("type_short")
+        ha_env = ha.get("environment")
+        ha_tags = ha.get("tags", [])
+        ha_domains = ha.get("domains", [])
+        ha_hosts = ha.get("hosts", [])
+        ha_time = ha.get("analysis_time")
+        total_reports = ha.get("total_reports", 1)
+
+        if threat_score is not None:
+            score = max(score, round(threat_score / 10, 1))
+
+        verdict_map = {
+            "malicious": "Malicioso",
+            "suspicious": "Suspeito",
+            "no specific threat": "Sem ameaça específica",
+            "whitelisted": "Whitelist",
+        }
+        verdict_pt = verdict_map.get(verdict or "", verdict or "Desconhecido")
+
+        desc_parts = [f"Veredicto: {verdict_pt}."]
+        if threat_score is not None:
+            desc_parts.append(f"Threat Score: {threat_score}/100.")
+        if av_detect is not None:
+            desc_parts.append(f"Detecção por AV: {av_detect}%.")
+        if ha_type:
+            desc_parts.append(f"Tipo: {ha_type}.")
+        if ha_env:
+            desc_parts.append(f"Sandbox: {ha_env}.")
+        if ha_time:
+            desc_parts.append(f"Analisado em: {ha_time}.")
+        if total_reports > 1:
+            desc_parts.append(f"Total de relatórios: {total_reports}.")
+        if ha_tags:
+            desc_parts.append(f"Tags: {', '.join(ha_tags[:5])}.")
+
+        findings.append(Finding(
+            title="Análise comportamental no Hybrid Analysis",
+            description=" ".join(desc_parts),
+            source="Hybrid Analysis",
+        ))
+
+        if ha_domains or ha_hosts:
+            ioc_parts = []
+            if ha_domains:
+                ioc_parts.append(f"Domínios contatados: {', '.join(ha_domains[:5])}{'...' if len(ha_domains) > 5 else ''}.")
+            if ha_hosts:
+                ioc_parts.append(f"Hosts contatados: {', '.join(ha_hosts[:5])}{'...' if len(ha_hosts) > 5 else ''}.")
+            findings.append(Finding(
+                title="IOCs de rede identificados",
+                description=" ".join(ioc_parts),
+                source="Hybrid Analysis",
+            ))
+            recommendations.append("Bloquear os IOCs de rede identificados pelo Hybrid Analysis.")
+
+        if verdict in ("malicious",) and "Isolar imediatamente" not in " ".join(recommendations):
+            recommendations.append("Isolar imediatamente o sistema onde o arquivo foi encontrado.")
+            recommendations.append("Iniciar processo de resposta a incidentes (IR).")
+        elif verdict == "suspicious" and not any("Quarentenar" in r for r in recommendations):
+            recommendations.append("Quarentenar o arquivo e investigar sua origem.")
+
     risk = _score_to_risk(score)
 
     summary_parts = [f"Análise do hash {file_name}:"]
@@ -237,6 +303,9 @@ def _analyze_hash(query: str, raw_data: dict) -> dict:
         summary_parts.append(f"{malicious_vt} de {total_vt} engines identificaram como malicioso.")
     else:
         summary_parts.append("Nenhuma detecção registrada no VirusTotal.")
+    if ha and "error" not in ha and ha.get("verdict"):
+        verdict_pt_sum = {"malicious": "malicioso", "suspicious": "suspeito", "no specific threat": "sem ameaça", "whitelisted": "whitelist"}.get(ha["verdict"], ha["verdict"])
+        summary_parts.append(f"Hybrid Analysis veredicto: {verdict_pt_sum} (score {ha.get('threat_score', 'N/A')}/100).")
 
     return dict(
         risk_level=risk,

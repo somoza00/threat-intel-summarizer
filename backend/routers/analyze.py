@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from models.schemas import AnalyzeRequest, AnalyzeResponse, InputType
-from services import virustotal, abuseipdb, nvd, shodan, rule_based_summarizer as ai_summarizer
+from services import virustotal, abuseipdb, nvd, shodan, hybrid_analysis, rule_based_summarizer as ai_summarizer
 
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
@@ -51,8 +51,12 @@ async def analyze(request: Request, body: AnalyzeRequest):
         raw_data["shodan"] = shodan_data
 
     elif input_type == InputType.hash:
-        vt_data = await virustotal.lookup_hash(query)
+        vt_data, ha_data = await asyncio.gather(
+            virustotal.lookup_hash(query),
+            hybrid_analysis.lookup_hash(query),
+        )
         raw_data["virustotal"] = vt_data
+        raw_data["hybrid_analysis"] = ha_data
 
     elif input_type == InputType.domain:
         vt_data, shodan_data = await asyncio.gather(
