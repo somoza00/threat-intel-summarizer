@@ -20,6 +20,9 @@ def detect_input_type(query: str) -> InputType:
     if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", query):
         return InputType.ip
 
+    if re.match(r"^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$", query):
+            return InputType.ip
+
     if re.match(r"^[a-fA-F0-9]{32}$", query):
         return InputType.hash
     if re.match(r"^[a-fA-F0-9]{40}$", query):
