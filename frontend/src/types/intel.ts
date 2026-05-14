@@ -1,4 +1,12 @@
 export type RiskLevel = "critical" | "high" | "medium" | "low" | "clean" | "unknown";
+
+export interface NewsItem {
+  title: string;
+  link: string;
+  published_at: string | null;
+  description: string;
+  source: string;
+}
 export type InputType = "ip" | "hash" | "domain" | "cve";
 
 export interface Finding {

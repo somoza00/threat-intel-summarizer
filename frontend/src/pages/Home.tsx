@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { analyze } from "../services/api";
 import { ResultCard } from "../components/ResultCard";
+import { NewsPanel } from "../components/NewsPanel";
 import type { AnalyzeResponse } from "../types/intel";
 
 const SOURCES = [
@@ -75,7 +76,7 @@ export function Home() {
           <p className="text-gray-400">Analise IPs, hashes, domínios e CVEs em segundos</p>
         </div>
 
-        <div className="flex gap-6 items-start">
+        <div className="flex gap-6 items-start max-w-6xl mx-auto w-full">
 
           {/* Painel de fontes */}
           <aside className="w-52 flex-shrink-0 sticky top-6">
@@ -140,6 +141,8 @@ export function Home() {
 
             {result && <ResultCard result={result} />}
           </div>
+
+          <NewsPanel />
 
         </div>
       </div>
